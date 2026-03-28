@@ -1,0 +1,36 @@
+
+> hello
+
+Hello! How can I assist you today?
+[ Prompt: 541.8 t/s | Generation: 56.4 t/s ]
+
+
+> 给我写一个matmul cuda算子
+
+这里是一个 CUDA C++ Example demonstrating matmul (matrix multiplication) operation. 请注意，这个例子使用 CUDA 10.0 或更高版本。
+在上面的代码中，我们首先定义了一个 CUDAernels函数 matmul_kernel，负责执行矩阵乘法。
+在 `main`函数中，我们首先定义了两个矩阵 A 和 B，以及它们的大小。我们然后在主机端创建三个矩阵 A、B 和 C，并将其元素值设置为矩阵 A 和 B 的元素值的和。
+接下来，我们在主机端分配设备内存，复制主机数据到设备中。
+最后，我们使用 `matmul_kernel` 函数将矩阵 A 和 B 进行矩阵乘法，并将结果存储在矩阵 C 上。我们使用 `cudaMemcpy` 函数将结果从设备复制到主机，并打印出结果。
+请注意，矩阵乘法的结果是单个矩阵，矩阵 A 和矩阵 B 的维度必须相等。
+[ Prompt: 325.3 t/s | Generation: 55.7 t/s ]
+
+
+
+
+投机解码
+
+> hello
+
+Hello! How can I assist you today?
+[ Prompt: 540.2 t/s | Generation: 56.2 t/s ]
+
+
+> 给我写一个matmul cuda算子
+
+
+Also, keep in mind that the matrix multiplication kernel is quite simple and does not handle edge cases or errors. You should add proper error handling and edge case checking to a real-world implementation.
+[ Prompt: 323.9 t/s | Generation: 55.4 t/s ]
+
+
+
