@@ -1,0 +1,13 @@
+# Target labels
+ vulkan-shaders-gen
+# Source files and their labels
+/home/ljl/ljl_test/llama/build/ggml/src/ggml-vulkan/CMakeFiles/vulkan-shaders-gen
+/home/ljl/ljl_test/llama/build/ggml/src/ggml-vulkan/CMakeFiles/vulkan-shaders-gen.rule
+/home/ljl/ljl_test/llama/build/ggml/src/ggml-vulkan/CMakeFiles/vulkan-shaders-gen-complete.rule
+/home/ljl/ljl_test/llama/build/ggml/src/ggml-vulkan/vulkan-shaders-gen-prefix/src/vulkan-shaders-gen-stamp/vulkan-shaders-gen-build.rule
+/home/ljl/ljl_test/llama/build/ggml/src/ggml-vulkan/vulkan-shaders-gen-prefix/src/vulkan-shaders-gen-stamp/vulkan-shaders-gen-configure.rule
+/home/ljl/ljl_test/llama/build/ggml/src/ggml-vulkan/vulkan-shaders-gen-prefix/src/vulkan-shaders-gen-stamp/vulkan-shaders-gen-download.rule
+/home/ljl/ljl_test/llama/build/ggml/src/ggml-vulkan/vulkan-shaders-gen-prefix/src/vulkan-shaders-gen-stamp/vulkan-shaders-gen-install.rule
+/home/ljl/ljl_test/llama/build/ggml/src/ggml-vulkan/vulkan-shaders-gen-prefix/src/vulkan-shaders-gen-stamp/vulkan-shaders-gen-mkdir.rule
+/home/ljl/ljl_test/llama/build/ggml/src/ggml-vulkan/vulkan-shaders-gen-prefix/src/vulkan-shaders-gen-stamp/vulkan-shaders-gen-patch.rule
+/home/ljl/ljl_test/llama/build/ggml/src/ggml-vulkan/vulkan-shaders-gen-prefix/src/vulkan-shaders-gen-stamp/vulkan-shaders-gen-update.rule

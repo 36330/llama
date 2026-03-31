@@ -44,7 +44,8 @@
 
 /tags
 /.build/
-/build*
+# /build*
+build/ggml/src/ggml-vulkan/mul_mm.comp.cpp
 /release
 /debug
 /libllama.so
