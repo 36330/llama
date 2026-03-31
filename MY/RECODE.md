@@ -319,9 +319,9 @@ python convert_hf_to_gguf.py \
   Q4_K_M
 
 ./build/bin/llama-quantize \
-  /home/ljl/ljl_test/llama/models/llama3.1-425M-8b-eagle-F16.gguf \
-  /home/ljl/ljl_test/llama/models/llama3.1-425M-8b-eagle_Q4_K_M.gguf \
-  Q4_K_M
+  /home/ljl/ljl_test/llama/models/eagle3-qwen3.5-9b-eagle.gguf \
+  /home/ljl/ljl_test/llama/models/eagle3-qwen3.5-9b-eagle_Q8_0.gguf \
+  Q8_0
 
 
 ## 测试
@@ -397,14 +397,12 @@ done
   -n 256 --draft 4 --temp 0 --seed 42 -ngl 99 -ngld 99
 
 for prompt in \
-    "Write a quicksort algorithm in Python. Write code only." \
-    "Explain the Pythagorean theorem" \
-    "Plan a 1 day trip to DC"; do
+    "Write a quicksort algorithm in Python."; do
   echo "=== Prompt: $prompt ==="
     ./build/bin/llama-speculative-simple \
       -m /home/ljl/ljl_test/llama/models/Qwen3VL-30B-A3B-Instruct-Q4_K_M.gguf \
       -md /home/ljl/ljl_test/llama/models/qwen3-30b-eagle_Q4_K_M.gguf \
-      --eagle3 -p "$prompt" -n 256 --draft 1 \
+      --eagle3 -p "$prompt" -n 256 --draft 8 \
       --temp 0 --top-k 1 --seed 42 -ngl 99 -ngld 99 
 done
 
@@ -415,5 +413,87 @@ done
 
 现在我需要正式实现qwen3.5的eagle3推理了，这是之前的plan /home/ljl/ljl_test/llama/MY/eagle3_qwen35_plan.md   然后/home/ljl/ljl_test/modelss/epoch_2_step_12000  这是我训练好的qwen3.5-4b的eagle模型  就用这个和/home/ljl/ljl_test/llama/models/Qwen3-4B-Q8_0.gguf  分别作为draft和target,但是现在的draft还是需要转成gguf才行，可能也需要更改
 
+################################
+for prompt in \
+    "Write a quicksort algorithm in Python"; do
+  echo "=== Prompt: $prompt ==="
+    ./build/bin/llama-speculative-simple \
+      -m /home/ljl/ljl_test/llama/models/Qwen3.5-4B-BF16.gguf \
+      -md /home/ljl/ljl_test/llama/models/eagle3-qwen35-4b-draft-f16.gguf \
+      --eagle3 -p "$prompt" -n 256 --draft 2 \
+      --temp 0 --top-k 1 --seed 42 -ngl 99 -ngld 99 
+done
+
+./build/bin/llama-cli \
+  -m /home/ljl/ljl_test/llama/models/Qwen3.5-4B-BF16.gguf  \
+  -p "Write a quicksort algorithm in Python" \
+  -n 256 --temp 0 --seed 42 -ngl 99
 
 
+################################
+for prompt in \
+    "Write a quicksort algorithm in Python"; do
+  echo "=== Prompt: $prompt ==="
+    ./build/bin/llama-speculative-simple \
+      -m /home/ljl/ljl_test/llama/models/Qwen3.5-4B-Q8_0.gguf \
+      -md /home/ljl/ljl_test/llama/models/eagle3-qwen35-4b-draft-Q8_0.gguf \
+      --eagle3 -p "$prompt" -n 256 --draft 8 \
+      --temp 0 --top-k 1 --seed 42 -ngl 99 -ngld 99 
+done
+
+./build/bin/llama-cli \
+  -m /home/ljl/ljl_test/llama/models/Qwen3.5-4B-Q8_0.gguf  \
+  -p "Write a quicksort algorithm in Python" \
+  -n 256 --temp 0 --seed 42 -ngl 99
+
+
+################################
+for prompt in \
+    "Write a function to remove all elements from a given list present in another list."; do
+  echo "=== Prompt: $prompt ==="
+    ./build/bin/llama-speculative-simple \
+      -m /home/ljl/ljl_test/llama/models/Qwen3.5-4B-Q4_K_M.gguf \
+      -md /home/ljl/ljl_test/llama/models/eagle3-qwen35-4b-draft-Q4_K_M.gguf \
+      --eagle3 -p "$prompt" -n 256 --draft 8 \
+      --temp 0 --top-k 1 --seed 42 -ngl 99 -ngld 99 
+done
+
+./build/bin/llama-cli \
+  -m /home/ljl/ljl_test/llama/models/Qwen3.5-4B-Q4_K_M.gguf  \
+  -p "Write a function to remove all elements from a given list present in another list." \
+  -n 256 --temp 0 --seed 42 -ngl 99
+
+
+
+################################
+for prompt in \
+    "Write a function to remove all elements from a given list present in another list."; do
+  echo "=== Prompt: $prompt ==="
+    ./build/bin/llama-speculative-simple \
+      -m /home/ljl/ljl_test/llama/models/Qwen3.5-9B-BF16.gguf \
+      -md /home/ljl/ljl_test/llama/models/eagle3-qwen3.5-9b-eagle.gguf \
+      --eagle3 -p "$prompt" -n 256 --draft 2 \
+      --temp 0 --top-k 1 --seed 42 -ngl 99 -ngld 99 
+done
+
+./build/bin/llama-cli \
+  -m /home/ljl/ljl_test/llama/models/Qwen3.5-9B-BF16.gguf  \
+  -p "Write a function to remove all elements from a given list present in another list." \
+  -n 256 --temp 0 --seed 42 -ngl 99
+
+
+################################
+for prompt in \
+    "Write a function to remove all elements from a given list present in another list."; do
+  echo "=== Prompt: $prompt ==="
+    ./build/bin/llama-speculative-simple \
+      -m /home/ljl/ljl_test/llama/models/Qwen3.5-9B-Q8_0.gguf \
+      -md /home/ljl/ljl_test/llama/models/eagle3-qwen3.5-9b-eagle_Q8_0.gguf \
+      --eagle3 -p "$prompt" -n 256 --draft 8 \
+      --temp 0 --top-k 1 --seed 42 -ngl 99 -ngld 99 
+done
+
+./build/bin/llama-cli \
+  -m /home/ljl/ljl_test/llama/models/Qwen3.5-9B-Q8_0.gguf  \
+  -p "Write a function to remove all elements from a given list present in another list." \
+  -n 256 --temp 0 --seed 42 -ngl 99
