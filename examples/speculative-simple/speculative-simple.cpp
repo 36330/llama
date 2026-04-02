@@ -6,11 +6,82 @@
 #include "llama.h"
 #include "chat.h"
 
+#include <algorithm>
 #include <clocale>
 #include <cstdio>
 #include <cstring>
 #include <string>
 #include <vector>
+
+struct speculative_slot_chain {
+    struct node {
+        llama_seq_id seq_id = -1;  // 这个节点对应哪个 sequence slot
+        int prev = -1; // 上一个节点是谁，等于链表前驱
+        int depth = 0; // 这个节点在链上的深度
+    };
+
+    llama_memory_t mem = nullptr; // target 模型的 memory 句柄
+    llama_seq_id live_seq = 0; // 当前真实主序列，一般就是 seq 0
+    int max_slots = 0;  // 最多允许多少个 draft slot
+    int tail = -1;
+    std::vector<node> nodes; // 所有链表节点
+
+    speculative_slot_chain(llama_memory_t mem, llama_seq_id live_seq, int max_slots)
+        : mem(mem), live_seq(live_seq), max_slots(max_slots) {
+        nodes.reserve(max_slots + 1);
+    }
+
+    void reset() {
+        llama_memory_seq_keep(mem, live_seq);
+
+        nodes.clear();
+        nodes.push_back(node {
+            /*.seq_id =*/ live_seq,
+            /*.prev   =*/ -1,
+            /*.depth  =*/ 0,
+        });
+        tail = 0;
+    }
+
+    llama_seq_id append() {
+        GGML_ASSERT(tail >= 0);
+        GGML_ASSERT((int) nodes.size() <= max_slots);
+
+        const llama_seq_id seq_cur = (llama_seq_id) nodes.size();
+        const auto & parent = nodes[tail];
+
+        llama_memory_seq_cp(mem, parent.seq_id, seq_cur, -1, -1);
+
+        nodes.push_back(node {
+            /*.seq_id =*/ seq_cur,
+            /*.prev   =*/ tail,
+            /*.depth  =*/ parent.depth + 1,
+        });
+        tail = (int) nodes.size() - 1;
+
+        return seq_cur;
+    }
+
+    const node & find_depth(int depth) const {
+        GGML_ASSERT(tail >= 0);
+
+        int cur = tail;
+        while (cur >= 0 && nodes[cur].depth > depth) {
+            cur = nodes[cur].prev;
+        }
+
+        GGML_ASSERT(cur >= 0);
+        GGML_ASSERT(nodes[cur].depth == depth);
+
+        return nodes[cur];
+    }
+
+    void promote_depth(int depth) {
+        const auto & keep = find_depth(depth);
+        llama_memory_seq_cp(mem, keep.seq_id, live_seq, -1, -1);
+        llama_memory_seq_keep(mem, live_seq);
+    }
+};
 
 int main(int argc, char ** argv) {
     std::setlocale(LC_NUMERIC, "C");
@@ -32,6 +103,12 @@ int main(int argc, char ** argv) {
         LOG_ERR("%s: --model-draft is required\n", __func__);
         return 1;
     }
+
+    // Reserve extra target slots for speculative slot chains:
+    //   seq 0 = live sequence
+    //   seq 1..draft+1 = [id_last, draft0, ...] verification slots
+    params.kv_unified = true;
+    params.n_parallel = std::max(params.n_parallel, params.speculative.n_max + 2);
 
     // init llama.cpp
     llama_backend_init();
@@ -111,7 +188,6 @@ int main(int argc, char ** argv) {
     int n_predict = 0;
     int n_drafted = 0;
     int n_accept  = 0;
-
     // used to determine end of generation
     bool has_eos = false;
 
@@ -179,14 +255,23 @@ int main(int argc, char ** argv) {
         n_past = inp.size() - 1;
     }
 
-    // init the speculator
     const auto & params_spec = params.speculative;
-
     struct common_speculative * spec = common_speculative_init(params.speculative, ctx_tgt);
 
     common_speculative_begin(spec, prompt_tgt);
 
-    llama_batch batch_tgt = llama_batch_init(llama_n_batch(ctx_tgt), 0, 1);
+    llama_batch batch_tgt = llama_batch_init(llama_n_batch(ctx_tgt), 0, llama_n_seq_max(ctx_tgt));
+
+    llama_memory_t mem_tgt = llama_get_memory(ctx_tgt);
+    const int n_slot_verify_max = params.speculative.n_max + 1;
+
+    if ((int) llama_n_seq_max(ctx_tgt) < n_slot_verify_max + 1) {
+        LOG_ERR("%s: target context has only %u sequence slots, need at least %d\n",
+                __func__, llama_n_seq_max(ctx_tgt), n_slot_verify_max + 1);
+        return 1;
+    }
+
+    speculative_slot_chain slot_chain(mem_tgt, 0, n_slot_verify_max);
 
     const auto t_enc_end = ggml_time_us();
 
@@ -200,47 +285,67 @@ int main(int argc, char ** argv) {
         // offloaded to a remote device. it doesn't even have to be based on an LLM. instead, it can provide tokens
         // from a cache or lookup tables.
         //
+
+
         llama_tokens draft = common_speculative_draft(spec, params_spec, prompt_tgt, id_last);
 
         //LOG_DBG("draft: %s\n", string_from(ctx_dft, draft).c_str());
 
-        // always have a token to evaluate from before - id_last
-        common_batch_clear(batch_tgt);
-        common_batch_add  (batch_tgt, id_last, n_past++, { 0 }, true);
-
-        // evaluate the target model on [id_last, draft0, draft1, ..., draftN-1]
-        {
-            // do not waste time on small drafts
-            if (draft.size() < (size_t) params_spec.n_min) {
-                draft.clear();
-            }
-
-            for (size_t i = 0; i < draft.size(); ++i) {
-                common_batch_add(batch_tgt, draft[i], n_past + i, { 0 }, true);
-            }
-
-            //LOG_DBG("target batch: %s\n", string_from(ctx_tgt, batch_tgt).c_str());
-
-            llama_decode(ctx_tgt, batch_tgt);
+        // do not waste time on small drafts
+        if (draft.size() < (size_t) params_spec.n_min) {
+            draft.clear();
         }
 
-        // sample from the full target batch and return the accepted tokens based on the target sampler
-        //
-        // for each token to be accepted, the sampler would have to sample that same token
-        // in such cases, instead of decoding the sampled token as we normally do, we simply continue with the
-        // available logits from the batch and sample the next token until we run out of logits or the sampler
-        // disagrees with the draft
-        //
-        const auto ids = common_sampler_sample_and_accept_n(smpl, ctx_tgt, draft);
+        std::vector<llama_token> verify_tokens;
+        verify_tokens.reserve(draft.size() + 1);
+        verify_tokens.push_back(id_last);
+        verify_tokens.insert(verify_tokens.end(), draft.begin(), draft.end());
+
+        const int n_verify = verify_tokens.size();
+
+        GGML_ASSERT(n_verify <= n_slot_verify_max);
+
+        // Keep each draft state as a linked slot node:
+        //   live -> id_last -> draft0 -> draft1 -> ...
+        // If a later draft is rejected, we can walk the chain back to the last
+        // accepted node and promote that state directly.
+        slot_chain.reset();
+
+        llama_tokens ids;
+        ids.reserve(n_verify);
+
+        for (int i = 0; i < n_verify; ++i) {
+            const llama_seq_id seq_cur = slot_chain.append();
+
+            common_batch_clear(batch_tgt);
+            common_batch_add(batch_tgt, verify_tokens[i], n_past + i, { seq_cur }, true);
+
+            llama_decode(ctx_tgt, batch_tgt);
+
+            const llama_token id = common_sampler_sample(smpl, ctx_tgt, 0);
+            common_sampler_accept(smpl, id, true);
+
+            ids.push_back(id);
+
+            if ((size_t) i == draft.size()) {
+                break;
+            }
+
+            if (draft[i] != id) {
+                break;
+            }
+        }
 
         //LOG_DBG("ids: %s\n", string_from(ctx_tgt, ids).c_str());
 
         GGML_ASSERT(ids.size() > 0); // there will always be at least one accepted token
 
-        n_past    += ids.size() - 1;
+        n_past    += ids.size();
         n_drafted += draft.size(); // note: we ignore the discarded small drafts
         n_accept  += ids.size() - 1;
         n_predict += ids.size();
+
+        common_speculative_accept(spec, ids.size() - 1);
 
         // process the accepted tokens and update contexts
         //
@@ -268,11 +373,8 @@ int main(int argc, char ** argv) {
 
         LOG_DBG("accepted %d/%d draft tokens, the last target token is: (%d)\n", (int) ids.size() - 1, (int) draft.size(), id_last);
 
-        {
-            LOG_DBG("clear kv cache from any extra tokens, n_past = %d\n", n_past);
-
-            llama_memory_seq_rm(llama_get_memory(ctx_tgt), 0, n_past, -1);
-        }
+        LOG_DBG("promote speculative chain depth %d to live sequence 0\n", (int) ids.size());
+        slot_chain.promote_depth((int) ids.size());
 
         if ((params.n_predict >= 0 && n_predict > params.n_predict) || has_eos) {
             break;
