@@ -44,7 +44,7 @@ endif()
 
 if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
   foreach(file
-      "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/libmtmd.so.0.0.8163"
+      "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/libmtmd.so.0.0.8397"
       "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/libmtmd.so.0"
       )
     if(EXISTS "${file}" AND
@@ -55,11 +55,11 @@ if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT
     endif()
   endforeach()
   file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE SHARED_LIBRARY FILES
-    "/home/ljl/ljl_test/llama/build/bin/libmtmd.so.0.0.8163"
+    "/home/ljl/ljl_test/llama/build/bin/libmtmd.so.0.0.8397"
     "/home/ljl/ljl_test/llama/build/bin/libmtmd.so.0"
     )
   foreach(file
-      "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/libmtmd.so.0.0.8163"
+      "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/libmtmd.so.0.0.8397"
       "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/libmtmd.so.0"
       )
     if(EXISTS "${file}" AND

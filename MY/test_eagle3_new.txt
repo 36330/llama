@@ -1,0 +1,106 @@
+
+Qwen3-8B-Q8_0.gguf 
+Qwen3-400M-8B_eagle3--Q8_0.gguf 
+
+draft2
+encoded   28 tokens in    0.076 seconds, speed:  366.027 t/s
+decoded  257 tokens in    5.612 seconds, speed:   45.797 t/s
+
+无eagle3
+[ Prompt: 506.0 t/s | Generation: 27.3 t/s ]           1.67x
+
+
+
+
+Qwen3-32B-Q8_0.gguf 
+qwen3-728M-32b-eagle3-Q8_0.gguf 
+
+draft2
+encoded   28 tokens in    0.270 seconds, speed:  103.599 t/s
+decoded  257 tokens in   26.268 seconds, speed:    9.784 t/s
+
+无eagle3
+[ Prompt: 127.8 t/s | Generation: 6.4 t/s ]     1.52x
+
+
+
+
+
+
+Qwen3.5-9B-BF16.gguf 
+eagle3-qwen3.5-9b-eagle.gguf 
+
+draft1  accept    = 61.463%
+encoded   26 tokens in    0.390 seconds, speed:   66.656 t/s
+decoded  259 tokens in   15.686 seconds, speed:   16.512 t/s
+
+
+无eagle3
+[ Prompt: 66.2 t/s | Generation: 9.8 t/s ]   1.68x
+
+
+
+
+Qwen3.5-4B-Q4_K_M.gguf 
+eagle3-qwen35-4b-draft-Q4_K_M.gguf 
+
+draft2  accept    = 53.140%
+encoded   26 tokens in    0.080 seconds, speed:  326.052 t/s
+decoded  257 tokens in    3.047 seconds, speed:   84.339 t/s
+
+无eagle3
+[ Prompt: 437.6 t/s | Generation: 64.2 t/s ]    1.31x
+
+
+
+Qwen3.5-4B-Q8_0.gguf 
+eagle3-qwen35-4b-draft-Q8_0.gguf 
+
+
+
+draft2  accept    = 50.843%
+encoded   17 tokens in    0.088 seconds, speed:  193.112 t/s
+decoded  513 tokens in    8.657 seconds, speed:   59.256 t/s
+
+无eagle3
+[ Prompt: 252.2 t/s | Generation: 43.4 t/s ]     1.36x
+
+
+
+Qwen3.5-4B-BF16.gguf 
+eagle3-qwen35-4b-draft-f16.gguf 
+
+draft2  accept    = 50.843%
+encoded   17 tokens in    0.156 seconds, speed:  108.644 t/s
+decoded  257 tokens in    8.323 seconds, speed:   30.879 t/s
+
+
+无eagle3
+[ Prompt: 107.4 t/s | Generation: 21.9 t/s ]    1.41x
+
+
+
+
+
+Qwen3VL-30B-A3B-Instruct-Q4_K_M.gguf 
+qwen3-30b-eagle_Q4_K_M.gguf 
+
+draft1
+encoded   16 tokens in    0.157 seconds, speed:  102.020 t/s
+decoded  257 tokens in    2.856 seconds, speed:   89.975 t/s
+
+
+无eagle3
+[ Prompt: 187.4 t/s | Generation: 88.5 t/s ]     1.02x
+
+
+Qwen3-30B-A3B-Thinking-2507-Q8_0.gguf 
+qwen3-a3B-30b-eagle-Q8_0.gguf 
+
+draft2  accept    = 50.843%
+encoded   28 tokens in    0.258 seconds, speed:  108.691 t/s
+decoded  258 tokens in    3.996 seconds, speed:   64.564 t/s
+
+
+无eagle3
+[ Prompt: 227.5 t/s | Generation: 58.5 t/s ]          1.1x
