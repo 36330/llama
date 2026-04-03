@@ -209,6 +209,9 @@ struct llama_hparams {
     // qwen3vl deepstack
     uint32_t n_deepstack_layers = 0;
 
+    // gemma4 per-layer embedding
+    uint32_t n_embd_per_layer = 0;
+
     // EAGLE3 draft model - layer indices to extract from target model
     // e.g., for 32-layer target: [2, 16, 29] (low, middle, high)
     std::array<int, 3> eagle3_extract_layers = {0, 0, 0};
