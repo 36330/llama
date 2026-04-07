@@ -222,22 +222,23 @@ int main(int argc, char ** argv) {
 
         const int n_verify = (int) draft.size() + 1;
 
-        common_batch_clear(batch_tgt);
+        common_batch_clear(batch_tgt); // 清空之前
 
         if (!llama_memory_eagle3_recurrent_begin(mem_tgt, 0, n_verify, n_past)) {
             LOG_ERR("%s: failed to reserve EAGLE3 recurrent verification slots for depth %d\n", __func__, n_verify);
             return 1;
         }
 
-        common_batch_add(batch_tgt, id_last, n_past++, { 0 }, true);
+        common_batch_add(batch_tgt, id_last, n_past++, { 0 }, true);  // 添加新一轮的采样id_last
 
         for (size_t i = 0; i < draft.size(); ++i) {
-            common_batch_add(batch_tgt, draft[i], n_past + i, { 0 }, true);
+            common_batch_add(batch_tgt, draft[i], n_past + i, { 0 }, true); // 添加新一轮的采样draft
         }
 
-        llama_decode(ctx_tgt, batch_tgt);
+        llama_decode(ctx_tgt, batch_tgt); //  target 一次性 decode 这一串
 
-        const auto ids = common_sampler_sample_and_accept_n(smpl, ctx_tgt, draft);
+        const auto ids = common_sampler_sample_and_accept_n(smpl, ctx_tgt, draft); // target 决定接受多少
+
 
         //LOG_DBG("ids: %s\n", string_from(ctx_tgt, ids).c_str());
 
